@@ -36,7 +36,7 @@ export async function explore(options) {
     if (options.publish) issues.push(await options.github.ensureIssue(item, body));
   }
   const report = { stage: 'explore', provider: options.provider, observations, decision, findings, issues: issues.map(i => ({ number: i.number, url: i.html_url })) };
-  await save('explore', report);
+  await save('explore', report, options);
   return report;
 }
 export async function automate(options) {
@@ -56,7 +56,7 @@ export async function automate(options) {
     const pr = options.publish ? await options.github.createPR(issue, filename, source) : null;
     results.push({ issue: issue.number, filename, pr: pr?.html_url, decision });
   }
-  await save('automate', results);
+  await save('automate', results, options);
   return results;
 }
 export async function review(options) {
@@ -85,7 +85,11 @@ export async function review(options) {
     if (options.publish) await options.github.commentReview(pr, `### Auditoria: ${decision.verdict}\n\n${decision.rationale}\n\nCommit: ${pr.head.sha}\nFonte canônica validada: ${valid}\nReprodução independente: ${reproduced}\n\nEsta é uma revisão técnica por comentário; não é uma aprovação formal de PR nem realiza merge.\n\n\`\`\`json\n${JSON.stringify(observation, null, 2)}\n\`\`\``);
     results.push({ pr: pr.number, head: pr.head.sha, ...decision, observation });
   }
-  await save('review', results);
+  await save('review', results, options);
   return results;
 }
-async function save(stage, report) { await mkdir('artifacts', { recursive: true }); await writeFile(`artifacts/${stage}.json`, JSON.stringify(report, null, 2)); }
+async function save(stage, report, options) {
+  if (options.persist === false) return;
+  await mkdir('artifacts', { recursive: true });
+  await writeFile(`artifacts/${stage}.json`, JSON.stringify(report, null, 2));
+}

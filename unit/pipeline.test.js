@@ -19,7 +19,7 @@ test('never publishes unobserved model findings', async () => {
 });
 test('flaky finding is not published', async () => {
   let attempts = 0, published = false;
-  const report = await explore({ provider: 'rules', publish: true, github: { ensureIssue: () => { published = true; } },
+  const report = await explore({ persist: false, provider: 'rules', publish: true, github: { ensureIssue: () => { published = true; } },
     probe: async id => ({ id, actual: 0, status: id === 'login-required' && ++attempts === 1 ? 'finding' : 'pass' }), decide });
   assert.equal(report.findings.length, 0);
   assert.equal(published, false);
@@ -42,7 +42,7 @@ test('review does not approve modified or arbitrary PR code', async () => {
     request: async () => ({ number: 1, body: '<!-- orangehrm-audit:login-required -->\n<!-- orangehrm-case:login-required -->' }),
     commentReview: async (_pr, body) => { commented = body; }
   };
-  const result = await review({ github, provider: 'rules', publish: true, probe: async () => { probed = true; }, decide });
+  const result = await review({ persist: false, github, provider: 'rules', publish: true, probe: async () => { probed = true; }, decide });
   assert.equal(probed, false);
   assert.equal(result[0].verdict, 'wontfix');
   assert.match(commented, /wontfix/);
