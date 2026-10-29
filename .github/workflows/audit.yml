@@ -1,0 +1,57 @@
+name: OrangeHRM agent pipeline
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: 'codex requires CODEX_API_KEY; rules is deterministic without AI'
+        type: choice
+        options: [codex, rules]
+        default: codex
+      publish:
+        description: 'Publish verified issues, test PRs and review comments'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+concurrency:
+  group: orangehrm-agent-pipeline
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_TOKEN: ${{ secrets.AUDIT_GITHUB_TOKEN || github.token }}
+      CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+      PROVIDER: ${{ inputs.provider }}
+      PUBLISH: ${{ inputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Authenticate Codex for CI
+        if: inputs.provider == 'codex'
+        shell: bash
+        run: |
+          test -n "$CODEX_API_KEY" || { echo 'Configure CODEX_API_KEY repository secret, or choose rules'; exit 1; }
+          printf '%s' "$CODEX_API_KEY" | npx codex login --with-api-key
+      - name: Run sequential agents
+        shell: bash
+        run: |
+          args=()
+          if [ "$PROVIDER" = rules ]; then args+=(--rules); fi
+          if [ "$PUBLISH" = true ]; then args+=(--publish); fi
+          npm run pipeline -- "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: orangehrm-audit-evidence
+          path: artifacts/
+          retention-days: 7
