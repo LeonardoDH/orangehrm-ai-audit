@@ -11,7 +11,7 @@ export function issueBody(item, observations, rationale) {
   return `Persona: ${item.persona} (perspectiva; credencial real: Admin do demo).\n\n### Passos\n${item.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n### Esperado\n${item.expected}\n\n### Observado (duas execuções independentes)\n\`\`\`json\n${JSON.stringify(observations, null, 2)}\n\`\`\`\n\n### Análise\n${rationale}\n\n<!-- orangehrm-case:${item.id} -->`;
 }
 export function parseIssue(issue) {
-  const id = issue.body?.match(/<!-- orangehrm-case:([a-z-]+) -->/)?.[1];
+  const id = issue.body?.match(/<!-- orangehrm-case:([a-z0-9-]+) -->/)?.[1];
   if (!id) return null;
   const item = getCase(id);
   if (!issue.body.includes(`<!-- orangehrm-audit:${id} -->`)) return null;

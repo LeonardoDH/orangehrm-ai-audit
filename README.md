@@ -40,6 +40,8 @@ npm run pipeline -- --publish
 
 O token precisa de Contents, Issues e Pull requests com escrita no repositório. O script não cria ou altera repositórios de terceiros.
 
+No Windows, se sua conta já estiver salva no Git Credential Manager, execute `pwsh -File scripts/run-local.ps1`. Esse atalho usa a credencial em memória, executa os três estágios e restaura o ambiente ao terminar. O token GitHub não é repassado ao processo do modelo.
+
 Etapas independentes: `npm run audit -- --publish`, `npm run automate -- --publish`, `npm run review -- --publish`. Sem `--publish`, automate/review ainda leem o GitHub, mas não escrevem nele. `automate` salva o teste localmente. Nenhuma etapa faz merge.
 
 ## O que realmente executa

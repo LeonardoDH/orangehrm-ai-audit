@@ -25,7 +25,11 @@ export async function decide(stage, input, schema, { provider = 'codex' } = {}) 
   const cli = process.env.CODEX_JS || require.resolve('@openai/codex/bin/codex.js');
   const args = [cli, 'exec', '--sandbox', 'read-only', '--skip-git-repo-check', '--ephemeral', '--output-schema', schemaPath, '--output-last-message', answerPath, '-'];
   await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, args, { shell: false, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+    const modelEnv = { ...process.env };
+    delete modelEnv.GITHUB_TOKEN;
+    delete modelEnv.GH_TOKEN;
+    delete modelEnv.AUDIT_GITHUB_TOKEN;
+    const child = spawn(process.execPath, args, { env: modelEnv, shell: false, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '', stderr = '';
     const timer = setTimeout(() => { child.kill(); reject(new Error('Codex timed out after 180 seconds')); }, 180000);
     child.stdout.on('data', b => { stdout += b; });
