@@ -2,6 +2,10 @@
 
 Auditoria reproduzível do OrangeHRM com **Codex + Playwright + GitHub**. Três agentes sequenciais analisam evidências, geram testes em Page Object Model e revisam a reprodução do defeito. Projeto adaptado do roteiro original que usava Claude Code.
 
+[![CI](https://github.com/LeonardoDH/orangehrm-ai-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/LeonardoDH/orangehrm-ai-audit/actions/workflows/ci.yml)
+
+[Execução documentada: 2 issues → 2 testes/PRs → 2 pareceres approve](docs/validation.md).
+
 ```mermaid
 flowchart LR
   P[Personas + skill] --> E[Explorador Codex]
